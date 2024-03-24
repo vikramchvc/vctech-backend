@@ -1,11 +1,10 @@
 from accounts.models import UserModel
 from .models import SummarizerModel
 from .constants import Constants
-from vctech import logger
 
 
 class CreditHandler():
-
+        
     def isAllowed(user: UserModel):
         summarizerObjs = SummarizerModel.objects.filter(user=user)
         if (summarizerObjs != None and len(summarizerObjs) > 0):
@@ -20,7 +19,7 @@ class CreditHandler():
             return summarizerObjs[0]
         return None
 
-    def updateCredit(email, plan):
+    def updatePlan(email, plan):
         user = UserModel.objects.filter(email=email)
         print("=========================VC debug================================")
         print(str(user))
@@ -34,6 +33,11 @@ class CreditHandler():
                 userObj.plan = plan
                 CreditHandler.resolvePlanCredit(userObj, plan)
                 userObj.save()
+        return None
+    
+    def updateCredit(credit,user:SummarizerModel):
+        user.credit = credit
+        user.save()
         return None
 
     def resolvePlanCredit(userObj: UserModel, plan):

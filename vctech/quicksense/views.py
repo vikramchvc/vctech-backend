@@ -44,19 +44,13 @@ class SummariseAPI(APIView):
 
 
 class PaymentAPI(APIView):
-    def get(self, request):
-        print("Vc check"+str(request))
-
-        response = {"credit", "exhausted"}
-        return Response(response)
-
     def post(self, request):
         print("Vc check"+str(request))
 
         json_data = json.loads(request.body.decode('utf-8'))
         email = json_data["email"]
         plan = json_data["plan"]
-        CreditHandler.updateCredit(email, plan)
+        CreditHandler.updatePlan(email, plan)
 
         response = {"credit", "exhausted"}
         return Response(response)
