@@ -38,4 +38,5 @@ tzdata==2024.1
 urllib3==2.2.1
 wheel==0.43.0
 youtube-transcript-api==0.6.2
-python-dotenv=1.0.1
+python-dotenv==1.0.1
+beautifulsoup4==4.12.3
