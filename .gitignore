@@ -1,0 +1,10 @@
+/dummy
+/.conda
+/.venv
+/vctech/dataStore
+/vctech/db.sqlite3
+/vctech/vctech/.env
+
+*.pyc
+
+.env
