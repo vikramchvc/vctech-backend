@@ -1,17 +1,20 @@
 from accounts.models import UserModel
 from .models import SummarizerModel
 from .constants import Constants
-
+from .summarizerService import Summarizer
+from .responses import ErrorResponse,SucessResponse
 
 class CreditHandler():
         
-    def isAllowed(user: UserModel):
+    def isAllowed(user: UserModel,summariser:Summarizer):
         summarizerObjs = SummarizerModel.objects.filter(user=user)
-        if (summarizerObjs != None and len(summarizerObjs) > 0):
-            credit = summarizerObjs[0].credit
-            if (credit != 0):
-                return True
-        return False
+        userObj = summarizerObjs[0]
+        credit = userObj.credit
+        _,duration = summariser.getTransScript()
+        if(credit<duration):
+            return ErrorResponse.LOW_CREDITS_CODE
+        CreditHandler.updateCredit(credit-duration,userObj)
+        return SucessResponse.ALLOWED_TO_SUMARIZE_CODE
 
     def getSumarizerObj(user: UserModel):
         summarizerObjs = SummarizerModel.objects.filter(user=user)

@@ -14,6 +14,7 @@ class Summarizer():
         self.link = link
         self.client = OpenAI(api_key = OPENAI_KEY)
         self.model="gpt-3.5-turbo-16k"
+        self.transcript = None
 
     def getTitle(self):
         r = requests.get(self.link)
@@ -35,41 +36,46 @@ class Summarizer():
        
 
     def getTransScript(self):
-        transcript_list = YouTubeTranscriptApi.list_transcripts(self.video_id)
-        try:
-            transcript = transcript_list.find_transcript(['en'])
-        except NoTranscriptFound:
-            return "noTransscript"
+        if(self.transcript==None):
+            transcript_list = YouTubeTranscriptApi.list_transcripts(self.video_id)
+            try:
+                transcript = transcript_list.find_transcript(['en'])
+            except NoTranscriptFound:
+                return "noTransscript"
 
-        transcript_data = transcript.fetch()            
-        outputJsonArray = []
-        chunk_duration = 20  
-        chunk_start = 0
-        chunk_text = ""
+            transcript_data = transcript.fetch()            
+            outputJsonArray = []
+            chunk_duration = 20  
+            chunk_start = 0
+            chunk_text = ""
 
-        for line in transcript_data:
-            if line['start'] < chunk_start + chunk_duration:
-                chunk_text += line['text'] + " "
-            else:
+            for line in transcript_data:
+                if line['start'] < chunk_start + chunk_duration:
+                    chunk_text += line['text'] + " "
+                else:
+                    end_time = chunk_start + chunk_duration
+                    start_time_formatted = self.format_time(chunk_start)
+                    objJson={
+                        "start":start_time_formatted,
+                        "text":chunk_text.strip()
+                    }
+                    outputJsonArray.append(objJson)
+                    chunk_start = end_time
+                    chunk_text = line['text'] + " "
+            if chunk_text:
                 end_time = chunk_start + chunk_duration
                 start_time_formatted = self.format_time(chunk_start)
                 objJson={
-                    "start":start_time_formatted,
-                    "text":chunk_text.strip()
+                        "start":start_time_formatted,
+                        "text":chunk_text.strip()
                 }
                 outputJsonArray.append(objJson)
-                chunk_start = end_time
-                chunk_text = line['text'] + " "
-        if chunk_text:
-            end_time = chunk_start + chunk_duration
-            start_time_formatted = self.format_time(chunk_start)
-            objJson={
-                    "start":start_time_formatted,
-                    "text":chunk_text.strip()
-            }
-            outputJsonArray.append(objJson)
-                
-        return outputJsonArray
+            self.transcript = outputJsonArray
+
+
+        #To do
+        duration_in_minutes = 30
+        return self.transcript,duration_in_minutes
     
     def extract_transcript_and_title(self):
         title = self.getTitle()
