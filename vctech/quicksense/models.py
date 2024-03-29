@@ -14,3 +14,4 @@ class SummarizerModel(models.Model):
 class YoutubeModel(models.Model):
     youtubeId = models.CharField(
         _("youtube_id"), max_length=100, null=False, blank=False)
+    json_data = models.TextField(default="{}")

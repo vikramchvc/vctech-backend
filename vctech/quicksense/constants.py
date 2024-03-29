@@ -5,3 +5,4 @@ class Constants():
     MONTHLY_PLAN_CREDIT = 500
     YEARLY_PLAN = "YEARLYPLAN"
     YEARLY_PLAN_CREDIT = 1000
+    EMPTY_JSON = {}
