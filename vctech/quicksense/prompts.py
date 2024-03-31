@@ -1,3 +1,5 @@
+from langchain_core.prompts import PromptTemplate
+
 SYSTEM_PROMPT='''Create structured and digestible summaries for YouTube videos, focusing on capturing the main objectives, significant insights, and unique aspects of the video content. These summaries should provide a clear and engaging overview for the reader, incorporating visual elements and structured information to enhance readability and interest.
 Markdown File Format Guide:
 
@@ -54,3 +56,16 @@ Important Note:
 '''
 
 USER_PROMPT='''Here is the transscript:\n{transcript}\nHere is the title: {title}'''
+
+MAP_PROMPT = """Write a concise summary of the following:
+"{text}"
+CONCISE SUMMARY:
+"""
+MAP_PROMPT_TEMPLATE = PromptTemplate(template=MAP_PROMPT, input_variables=["text"])
+
+COMBINE_PROMPT = SYSTEM_PROMPT+"""
+Here is the transscript:
+```{text}```
+"""
+COMBINE_PROMPT_TEMPLATE = PromptTemplate(template=COMBINE_PROMPT, input_variables=["text"])
+

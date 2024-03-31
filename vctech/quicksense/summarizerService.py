@@ -4,17 +4,19 @@ import requests
 from bs4 import BeautifulSoup
 from openai import OpenAI
 from vctech.settings import OPENAI_KEY
-from .prompts import SYSTEM_PROMPT, USER_PROMPT
+from .prompts import SYSTEM_PROMPT, USER_PROMPT, MAP_PROMPT_TEMPLATE,COMBINE_PROMPT_TEMPLATE
 from youtube_transcript_api._errors import NoTranscriptFound
 from .responses import Errors, ErrorResponse
-
-
+from langchain.chains.summarize import load_summarize_chain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.llms import OpenAI as LC_OPENAI
 class Summarizer():
 
     def __init__(self, id, link):
         self.video_id = id
         self.link = link
         self.client = OpenAI(api_key=OPENAI_KEY)
+        self.llm = LC_OPENAI(openai_api_key=OPENAI_KEY)
         self.model = "gpt-3.5-turbo-16k"
         self.transcript = None
 
@@ -103,15 +105,37 @@ class Summarizer():
         )
         return completion.choices[0].message.content
 
+    def largeSumarizer(self):
+        content = ("\n").join([t["text"] for t in self.transcripts])
+        text_splitter = RecursiveCharacterTextSplitter(separators=["\n\n", "\n"], chunk_size=5000, chunk_overlap=250)
+        docs = text_splitter.create_documents([content])
+        summary_chain = load_summarize_chain(llm=self.llm,
+                                     chain_type='map_reduce',
+                                     map_prompt=MAP_PROMPT_TEMPLATE,
+                                     combine_prompt=COMBINE_PROMPT_TEMPLATE,
+                                    )
+        output = summary_chain.run(docs)
+        return output 
+
+
     def summarise(self):
         title, transcript, transcripts = self.extract_entities()
         if (title == Errors.NO_TRANSCRIPT):
             return ErrorResponse.NO_TRANSCRIPT_CODE
         else:
-            summary = self.GPT(title, transcript)
-            response = {
-                "title": title,
-                "transscript": transcripts,
-                "summary": summary
-            }
+            content_length = self.llm.get_num_tokens(transcript)
+            if(content_length>9000):
+                summary = self.largeSumarizer()
+                response = {
+                    "title": title,
+                    "transscript": transcripts,
+                    "summary": summary
+                }
+            else:
+                summary = self.GPT(title, transcript)
+                response = {
+                    "title": title,
+                    "transscript": transcripts,
+                    "summary": summary
+                }
         return response
